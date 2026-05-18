@@ -32,7 +32,11 @@ COPY version/  version/
 
 RUN go mod download
 
-# Build EPP
+# Pre-compile all packages without version flags so this layer is cached on source changes
+# independently of COMMIT_SHA/BUILD_REF which change on every commit.
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /dev/null cmd/epp/main.go
+
+# Link with version flags — fast (link only, packages already compiled above).
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags="${LDFLAGS} -X github.com/llm-d/llm-d-router/version.CommitSHA=${COMMIT_SHA} -X github.com/llm-d/llm-d-router/version.BuildRef=${BUILD_REF}" \
     -o bin/epp cmd/epp/main.go
