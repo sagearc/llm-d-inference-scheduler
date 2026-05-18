@@ -30,8 +30,6 @@ COPY internal/ internal/
 COPY pkg/      pkg/
 COPY version/  version/
 
-RUN go mod download
-
 # Pre-compile all packages without version flags so this layer is cached on source changes
 # independently of COMMIT_SHA/BUILD_REF which change on every commit.
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /dev/null cmd/epp/main.go
