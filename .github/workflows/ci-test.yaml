@@ -249,7 +249,7 @@ jobs:
         shell: bash
         run: make test-e2e-gaie-run
 
-  e2e-scheduler:
+  e2e-router:
     needs: [check-changes, e2e-build]
     if: ${{ needs.check-changes.outputs.src == 'true' }}
     runs-on: ubuntu-latest
