@@ -1,0 +1,47 @@
+name: E2E runner setup
+description: Prepares an e2e runner — frees disk space and restores the Go module/build cache.
+outputs:
+  go-mod-cache:
+    description: Absolute path to the Go module cache directory
+    value: ${{ steps.go-cache.outputs.mod }}
+  go-build-cache:
+    description: Absolute path to the Go build cache directory
+    value: ${{ steps.go-cache.outputs.build }}
+runs:
+  using: "composite"
+  steps:
+    # Custom profile with directory-only removals (run in parallel, no apt).
+    # The cleanup-profile: max is much more aggressive, it cleanups around 41GB,
+    # but runs 3.5 mins
+    - name: Free disk space
+      uses: justinthelaw/maximize-github-runner-space@v0.9.0
+      with:
+        cleanup-profile: custom
+        remove-android: 'true'
+        remove-dotnet: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-cached-tools: 'true'
+        remove-swift: 'true'
+        remove-julia: 'true'
+        remove-rust: 'true'
+        remove-miniconda: 'true'
+        swapfile-size: 0
+
+    - name: Create Go cache dirs
+      id: go-cache
+      shell: bash
+      run: |
+        mkdir -p "$HOME/.cache/llm-d-gomodcache" "$HOME/.cache/llm-d-gobuildcache"
+        echo "mod=$HOME/.cache/llm-d-gomodcache" >> "$GITHUB_OUTPUT"
+        echo "build=$HOME/.cache/llm-d-gobuildcache" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Go modules and build cache
+      uses: actions/cache@v5
+      with:
+        path: |
+          ${{ steps.go-cache.outputs.mod }}
+          ${{ steps.go-cache.outputs.build }}
+        key: go-cache-${{ hashFiles('go.sum') }}
+        restore-keys: |
+          go-cache-
