@@ -129,7 +129,7 @@ func (r *vllmHTTPRenderer) Render(ctx context.Context, payload fwkrh.RequestPayl
 		return nil, nil, errors.New("vLLM HTTP tokenizer requires a parsed PayloadMap")
 	}
 	body := maps.Clone(pm)
-	body["model"] = r.modelName
+	body["model"] = r.modelName // `vllm launch render` requires the base model name
 	return r.postCompletionsRender(ctx, body)
 }
 
@@ -152,7 +152,7 @@ func (r *vllmHTTPRenderer) RenderChat(ctx context.Context, payload fwkrh.Request
 		return nil, nil, errors.New("vLLM HTTP tokenizer requires a parsed PayloadMap")
 	}
 	body := maps.Clone(pm)
-	body["model"] = r.modelName
+	body["model"] = r.modelName // `vllm launch render` requires the base model name
 	return r.postChatRender(ctx, body, r.chatTimeout(pm))
 }
 
