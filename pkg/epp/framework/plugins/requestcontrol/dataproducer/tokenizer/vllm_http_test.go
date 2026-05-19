@@ -66,7 +66,7 @@ func TestVLLMHTTPRenderer_Render(t *testing.T) {
 	defer srv.Close()
 
 	r := newHTTPRenderer(t, srv)
-	tokenIDs, offsets, err := r.Render(context.Background(), "hello")
+	tokenIDs, offsets, err := r.Render(context.Background(), fwkrh.PayloadMap{"prompt": "hello"})
 	require.NoError(t, err)
 	assert.Equal(t, []uint32{1, 2, 3}, tokenIDs)
 	assert.Nil(t, offsets)
@@ -133,17 +133,7 @@ func TestVLLMHTTPRenderer_RenderChat_Multimodal(t *testing.T) {
 		},
 		"add_generation_prompt": true,
 	}
-	chat := &fwkrh.ChatCompletionsRequest{
-		Messages: []fwkrh.Message{{
-			Role: "user",
-			Content: fwkrh.Content{Structured: []fwkrh.ContentBlock{
-				{Type: "image_url", ImageURL: fwkrh.ImageBlock{URL: "data:image/png;base64,xx"}},
-				{Type: "text", Text: "describe"},
-			}},
-		}},
-		AddGenerationPrompt: true,
-	}
-	tokenIDs, mm, err := r.renderChatPayload(context.Background(), payload, ChatCompletionsToRenderChatRequest(chat))
+	tokenIDs, mm, err := r.RenderChat(context.Background(), payload)
 	require.NoError(t, err)
 	assert.Equal(t, []uint32{1, 2, 3, 4, 5}, tokenIDs)
 	require.NotNil(t, mm)
@@ -205,7 +195,7 @@ func TestVLLMHTTPRenderer_HTTPError(t *testing.T) {
 	defer srv.Close()
 
 	r := newHTTPRenderer(t, srv)
-	_, _, err := r.Render(context.Background(), "x")
+	_, _, err := r.Render(context.Background(), fwkrh.PayloadMap{"prompt": "x"})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "500")
 }
